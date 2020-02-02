@@ -1,35 +1,31 @@
 import paho.mqtt.client as mqttClient
 import time
 from tinydb import TinyDB, Query
+from flask import Flask, jsonify, request #import objects from the Flask model
+app = Flask(__name__) #define app using Flask
 
-#Declare our database variable and the file to store our data in
-#This code should be modified for the database operations.
-db = TinyDB('todolist3.json')
-
-dataFromPublisher =  '{"2":{"Status":"New","Category":"Home","DueDate":"5/11/18","Description":"Do the Laundry"}}'
  
 def on_connect(client, userdata, flags, rc):
  
     if rc == 0:
- 
         print("Connected to broker")
  
         global Connected                #Use global variable
         Connected = True                #Signal connection 
  
     else:
- 
         print("Connection failed")
- 
+
+print ("Here before on_message")
+
 def on_message(client, userdata, message):
-	#db.insert(message.payload)
-	#db.insert(dataFromPublisher)
-	db.insert({"2":{"Status":"New","Category":"Home","DueDate":"5/11/18","Description":"Do the Laundry"}})
-	print ("Message received: "  + message.payload)
- 
-db.all()
-for item in db:
-	print("items are ",item)
+    
+    print ("Here in on_message")
+    #print ("Message received: "  , message.payload)
+    print ("message received  ", str(message.payload.decode("utf-8")))
+    print ("topic: " + message.topic)
+
+
 Connected = False   #global variable for the state of the connection
  
 #const char* mqtt_server = "broker.mqtt-dashboard.com";
@@ -51,15 +47,18 @@ client.loop_start()        #start the loop
 while Connected != True:    #Wait for connection
     time.sleep(0.1)
  
-client.subscribe("farmSensor1")
-client.subscribe("farmSensor2")
-client.subscribe("farmSensor3")
+client.subscribe("farmSensor")
  
 try:
     while True:
         time.sleep(1)
  
 except KeyboardInterrupt:
-    print "exiting"
+    print ("exiting")
     client.disconnect()
     client.loop_stop()
+
+
+if __name__ == '__main__':
+    #app.run(debug=True, port=8080) #run app on port 8080 in debug mode
+    app.run(host='127.0.0.1', port=50000, debug=True)
